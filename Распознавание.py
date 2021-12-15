@@ -38,6 +38,7 @@ scr = cv2.VideoCapture(0)
 handsDetector = mp.solutions.hands.Hands()
 count = 0
 prev_fist = False
+prev_gest = -2
 
 while(scr.isOpened()):
     ret, frame = scr.read()
@@ -51,46 +52,46 @@ while(scr.isOpened()):
         cv2.drawContours(flippedRGB, [get_points(results.multi_hand_landmarks[0].landmark, flippedRGB.shape)], 0, (255, 0, 0), 2)
         (x, y), r = cv2.minEnclosingCircle(get_points(results.multi_hand_landmarks[0].landmark, flippedRGB.shape))
         ws = palm_size(results.multi_hand_landmarks[0].landmark, flippedRGB.shape)
-        prev_gest = -1
-        if 2 * r / ws > 1.3:
-            cv2.circle(flippedRGB,(int(x), int(y)), int(r), (0, 0, 255), 2)
+        #if 2 * r / ws > 1.3:
+            #cv2.circle(flippedRGB,(int(x), int(y)), int(r), (0, 0, 255), 2)
                 # кулак разжат           
-        else:
+        if 2 * r / ws <= 1.3:
             cv2.circle(flippedRGB,(int(x), int(y)), int(r), (0, 255, 0), 2)
             if not prev_fist:
                      # произошло сжимание
-                if prev_gest!=0:
+                if prev_gest!=-1:
                     print(0)
-                    prev_gest = 0
+                    prev_gest = -1
                      # Сейчас кулак зажат
                 prev_fist = True
                 numget = True
         if not numget:
-            ii = 0
-            while not numget and ii<2:
+            ii = 1
+            while not numget and ii<5:
                 cv2.drawContours(flippedRGB, [get_points(results.multi_hand_landmarks[0].landmark, flippedRGB.shape)], 0, (255, 0, 0), 2)
                 (x, y), r = cv2.minEnclosingCircle(get_points(results.multi_hand_landmarks[0].landmark, flippedRGB.shape, ii))
                 ws = palm_size(results.multi_hand_landmarks[0].landmark, flippedRGB.shape)
                 if 2 * r / ws > 1.3:
-                    cv2.circle(flippedRGB,(int(x), int(y)), int(r), (0, 0, 255), 2)
-                            # кулак разжат
+                    #cv2.circle(flippedRGB,(int(x), int(y)), int(r), (0, 0, 255), ii)
+                                # кулак разжат
                     prev_fist = False
-                            
+                                
                 else:
                     cv2.circle(flippedRGB,(int(x), int(y)), int(r), (0, 255, 0), 2)
                     if not prev_fist:
-                                 # произошло сжимание
+                                     # произошло сжимание
                         if prev_gest!=ii:
+                            print(prev_gest, ii+1)
                             prev_gest = ii
-                            print(ii)
-                            #prev_gest = ii
-                                #if ii<3: 
-                                    #print(ii+1)
-                                #elif ii>2 and ii<7:
-                                    #print(ii+2)
-                                #else:
-                                    #print(4)
-                                 # Сейчас кулак зажат
+                                
+                            # print(ii+1)
+                            #if ii<3: 
+                                #print(ii+1)
+                            #elif ii>2 and ii<7:
+                                #print(ii+2)
+                            #else:
+                                #print(4)
+                                     # Сейчас кулак зажат
                             prev_fist = True
                             numget = True
                 ii+=1
