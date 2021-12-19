@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import mediapipe as mp
+from tkinter import Tk
 
 nofing = [
     [6, 7, 8], #1
@@ -39,7 +40,7 @@ handsDetector = mp.solutions.hands.Hands()
 count = 0
 prev_fist = False
 prev_gest = -2
-
+outp = ""
 while(scr.isOpened()):
     ret, frame = scr.read()
     if cv2.waitKey(1) & 0xFF == ord('q') or not ret:
@@ -53,54 +54,61 @@ while(scr.isOpened()):
         (x, y), r = cv2.minEnclosingCircle(get_points(results.multi_hand_landmarks[0].landmark, flippedRGB.shape))
         ws = palm_size(results.multi_hand_landmarks[0].landmark, flippedRGB.shape)
         #if 2 * r / ws > 1.3:
-            #cv2.circle(flippedRGB,(int(x), int(y)), int(r), (0, 0, 255), 2)
+            #cv2.circle(flippedRGB,(int(x), int(y)), int(r), (q0, 0, 255), 2)
                 # кулак разжат           
         if 2 * r / ws <= 1.3:
             cv2.circle(flippedRGB,(int(x), int(y)), int(r), (0, 255, 0), 2)
             if not prev_fist:
                      # произошло сжимание
                 if prev_gest!=-1:
-                    print(0)
+                    print(prev_gest, 0)
                     prev_gest = -1
-                     # Сейчас кулак зажат
+                    outp+=str(0)
                 prev_fist = True
                 numget = True
-        if not numget:
-            ii = 1
-            while not numget and ii<5:
+        else: 
+            ii = 0
+            while not numget and ii<8:
                 cv2.drawContours(flippedRGB, [get_points(results.multi_hand_landmarks[0].landmark, flippedRGB.shape)], 0, (255, 0, 0), 2)
                 (x, y), r = cv2.minEnclosingCircle(get_points(results.multi_hand_landmarks[0].landmark, flippedRGB.shape, ii))
                 ws = palm_size(results.multi_hand_landmarks[0].landmark, flippedRGB.shape)
                 if 2 * r / ws > 1.3:
                     #cv2.circle(flippedRGB,(int(x), int(y)), int(r), (0, 0, 255), ii)
-                                # кулак разжат
                     prev_fist = False
                                 
                 else:
-                    cv2.circle(flippedRGB,(int(x), int(y)), int(r), (0, 255, 0), 2)
                     if not prev_fist:
-                                     # произошло сжимание
-                        if prev_gest!=ii:
-                            print(prev_gest, ii+1)
+                        cv2.circle(flippedRGB,(int(x), int(y)), int(r), (0, 255, 0), 2)
+                        if prev_gest==ii:
+                            break
+                        else:
+                            if ii<3:
+                                print(ii+1)
+                                outp+=str(ii+1)
+                                    
+                            elif ii>2 and ii<7:
+                                print(ii+3)
+                                outp+=str(ii+3)
+                            else:
+                                print(4)
+                                outp+=str(4)
                             prev_gest = ii
-                                
-                            # print(ii+1)
-                            #if ii<3: 
-                                #print(ii+1)
-                            #elif ii>2 and ii<7:
-                                #print(ii+2)
-                            #else:
-                                #print(4)
-                                     # Сейчас кулак зажат
                             prev_fist = True
                             numget = True
                 ii+=1
+            
                 
-    cv2.putText(flippedRGB, str(), (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), thickness=2)
+    cv2.putText(flippedRGB, outp, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), thickness=2)
 
 
     
     res_image = cv2.cvtColor(flippedRGB, cv2.COLOR_RGB2BGR)
     cv2.imshow("Hands", res_image)
-    
+
 cv2.destroyAllWindows()
+r = Tk()
+r.withdraw()
+r.clipboard_clear()
+r.clipboard_append(outp)
+r.update() # now it stays on the clipboard after the window is closed
+r.destroy()
