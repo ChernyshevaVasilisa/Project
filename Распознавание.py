@@ -61,7 +61,6 @@ while(scr.isOpened()):
             if not prev_fist:
                      # произошло сжимание
                 if prev_gest!=-1:
-                    print(prev_gest, 0)
                     prev_gest = -1
                     outp+=str(0)
                 prev_fist = True
@@ -83,24 +82,84 @@ while(scr.isOpened()):
                             break
                         else:
                             if ii<3:
-                                print(ii+1)
                                 outp+=str(ii+1)
                                     
                             elif ii>2 and ii<7:
-                                print(ii+3)
                                 outp+=str(ii+3)
                             else:
-                                print(4)
                                 outp+=str(4)
                             prev_gest = ii
                             prev_fist = True
                             numget = True
                 ii+=1
-            
                 
-    cv2.putText(flippedRGB, outp, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (255, 255, 255), thickness=2)
-
-
+    if len(outp)<16:
+        cv2.putText(flippedRGB, outp, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
+            
+    elif len(outp)>15 and len(outp)<31:
+        outp1 = ""
+        outp2 = ""
+        for i in range(len(outp)-15):
+            outp2+=outp[i+15]
+        for i in range(15):
+            outp1+=outp[i]
+        cv2.putText(flippedRGB, outp1, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
+        cv2.putText(flippedRGB, outp2, (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
+        
+    elif len(outp)>30 and len(outp)<46:
+        outp1 = ""
+        outp2 = ""
+        outp3 = ""
+        for i in range(15):
+            outp1+=outp[i]
+        for i in range(15):
+            outp2+=outp[i+15]
+        for i in range(len(outp)-30):
+            outp3+=outp[i+30]
+        cv2.putText(flippedRGB, outp1, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
+        cv2.putText(flippedRGB, outp2, (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
+        cv2.putText(flippedRGB, outp3, (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
+        
+    elif len(outp)>45 and len(outp)<61:
+        outp1 = ""
+        outp2 = ""
+        outp3 = ""
+        outp4 = ""
+        for i in range(15):
+            outp1+=outp[i]
+        for i in range(15):
+            outp2+=outp[i+15]
+        for i in range(15):
+            outp3+=outp[i+30]
+        for i in range(len(outp)-45):
+            outp4+=outp[i+45]
+        cv2.putText(flippedRGB, outp1, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
+        cv2.putText(flippedRGB, outp2, (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
+        cv2.putText(flippedRGB, outp3, (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
+        cv2.putText(flippedRGB, outp4, (10, 200), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
+        
+    else:
+        outp1 = ""
+        outp2 = ""
+        outp3 = ""
+        outp4 = ""
+        outp5 = ""
+        for i in range(15):
+            outp1+=outp[i]
+        for i in range(15):
+            outp2+=outp[i+15]
+        for i in range(15):
+            outp3+=outp[i+30]
+        for i in range(15):
+            outp4+=outp[i+45]
+        for i in range(len(outp)-60):
+            outp5+=outp[i+60]
+        cv2.putText(flippedRGB, outp1, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
+        cv2.putText(flippedRGB, outp2, (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
+        cv2.putText(flippedRGB, outp3, (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
+        cv2.putText(flippedRGB, outp4, (10, 200), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
+        cv2.putText(flippedRGB, outp5, (10, 250), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
+    
     
     res_image = cv2.cvtColor(flippedRGB, cv2.COLOR_RGB2BGR)
     cv2.imshow("Hands", res_image)
