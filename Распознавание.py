@@ -7,6 +7,7 @@ nofing = [
     [6, 7, 8], #1
     [6, 7, 8, 10, 11, 12], #2
     [2, 3, 4, 6, 7, 8, 10, 11, 12], #3
+    [2, 3, 4, 6, 7, 8, 18,19, 20], #5
     [6, 7, 8, 10, 11, 12, 14, 15, 16], #6
     [6, 7, 8, 10, 11, 12, 18, 19, 20], #7
     [6, 7, 8, 14, 15, 16, 18, 19, 20], #8
@@ -34,7 +35,7 @@ def palm_size(landmark, shape):
     x2, y2 = landmark[5].x * shape[1], landmark[5].y * shape[0]
     return ((x1 - x2)**2 + (y1 - y2) **2) **.5
 
-
+print("Добро пожаловать! Эта программа будет считывать ваши жесты и выводить те цифры, которые вы показываете, а после закрытия программы полученнная строка цифр скопируется в ваш буфер обмена. Используются жесты жестового языка, так что вы можете показывать одной рукой любые цифры от нуля до девяти включительно (чтобы показать пять, покажите 'козу'). Для лучшего распознавания,советую после каждой цифры показывать раскрытую ладонь")
 scr = cv2.VideoCapture(0)
 handsDetector = mp.solutions.hands.Hands()
 count = 0
@@ -50,16 +51,13 @@ while(scr.isOpened()):
     results = handsDetector.process(flippedRGB)
     if results.multi_hand_landmarks is not None:
         numget = False
-        cv2.drawContours(flippedRGB, [get_points(results.multi_hand_landmarks[0].landmark, flippedRGB.shape)], 0, (255, 0, 0), 2)
+        #cv2.drawContours(flippedRGB, [get_points(results.multi_hand_landmarks[0].landmark, flippedRGB.shape)], 0, (255, 0, 0), 2)
         (x, y), r = cv2.minEnclosingCircle(get_points(results.multi_hand_landmarks[0].landmark, flippedRGB.shape))
         ws = palm_size(results.multi_hand_landmarks[0].landmark, flippedRGB.shape)
         #if 2 * r / ws > 1.3:
-            #cv2.circle(flippedRGB,(int(x), int(y)), int(r), (q0, 0, 255), 2)
-                # кулак разжат           
+            #cv2.circle(flippedRGB,(int(x), int(y)), int(r), (q0, 0, 255), 2)          
         if 2 * r / ws <= 1.3:
-            cv2.circle(flippedRGB,(int(x), int(y)), int(r), (0, 255, 0), 2)
             if not prev_fist:
-                     # произошло сжимание
                 if prev_gest!=-1:
                     prev_gest = -1
                     outp+=str(0)
@@ -67,30 +65,30 @@ while(scr.isOpened()):
                 numget = True
         else: 
             ii = 0
-            while not numget and ii<8:
-                cv2.drawContours(flippedRGB, [get_points(results.multi_hand_landmarks[0].landmark, flippedRGB.shape)], 0, (255, 0, 0), 2)
+            while not numget and ii<9:
+                #cv2.drawContours(flippedRGB, [get_points(results.multi_hand_landmarks[0].landmark, flippedRGB.shape)], 0, (255, 0, 0), 2)
                 (x, y), r = cv2.minEnclosingCircle(get_points(results.multi_hand_landmarks[0].landmark, flippedRGB.shape, ii))
                 ws = palm_size(results.multi_hand_landmarks[0].landmark, flippedRGB.shape)
                 if 2 * r / ws > 1.3:
-                    #cv2.circle(flippedRGB,(int(x), int(y)), int(r), (0, 0, 255), ii)
                     prev_fist = False
                                 
                 else:
                     if not prev_fist:
-                        cv2.circle(flippedRGB,(int(x), int(y)), int(r), (0, 255, 0), 2)
-                        if prev_gest==ii:
-                            break
-                        else:
+                        numget = True
+                        if prev_gest!= ii:
                             if ii<3:
                                 outp+=str(ii+1)
                                     
-                            elif ii>2 and ii<7:
-                                outp+=str(ii+3)
+                            elif ii>2 and ii<8:
+                                outp+=str(ii+2)
+
                             else:
-                                outp+=str(4)
+                                outp+="4"
                             prev_gest = ii
                             prev_fist = True
-                            numget = True
+                            
+                
+                
                 ii+=1
                 
     if len(outp)<16:
