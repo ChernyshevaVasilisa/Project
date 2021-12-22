@@ -3,6 +3,7 @@ import cv2
 import mediapipe as mp
 from tkinter import Tk
 
+#Список игнорируемых точек для каждой цифры - жеста
 nofing = [
     [6, 7, 8], #1
     [6, 7, 8, 10, 11, 12], #2
@@ -14,6 +15,7 @@ nofing = [
     [10, 11, 12, 14, 15, 16, 18, 19, 20], #9
     [6, 7, 8, 10, 11, 12, 14, 15, 16, 18, 19, 20]] #4
 
+'''Создаёт окружность вокруг указанных точек ладони, с помощью этой окружности определяется сжата ли ладонь'''
 def get_points(landmark, shape, lis = None):
     points = []
     if lis==None:
@@ -29,53 +31,67 @@ def get_points(landmark, shape, lis = None):
     return np.array(points, dtype=np.int32)
     
 
-
+'''Определяет минимальный диаметр возможной окружности вокруг ладони чтобы определить сжата ли ладонь'''
 def palm_size(landmark, shape):
     x1, y1 = landmark[0].x * shape[1], landmark[0].y * shape[0]
     x2, y2 = landmark[5].x * shape[1], landmark[5].y * shape[0]
     return ((x1 - x2)**2 + (y1 - y2) **2) **.5
 
-print("Добро пожаловать! Эта программа будет считывать ваши жесты и выводить те цифры, которые вы показываете, а после закрытия программы полученнная строка цифр скопируется в ваш буфер обмена. Используются жесты жестового языка, так что вы можете показывать одной рукой любые цифры от нуля до девяти включительно (чтобы показать пять, покажите 'козу'). Для лучшего распознавания,советую после каждой цифры показывать раскрытую ладонь")
+print("Добро пожаловать! Эта программа будет считывать ваши жесты и выводить те цифры, которые вы показываете, а после закрытия программы полученнная строка цифр скопируется в ваш буфер обмена. Используются жесты жестового языка, так что вы можете показывать одной рукой любые цифры от нуля до девяти включительно (чтобы показать пять, покажите 'козу'). Для лучшего распознавания советую после каждой цифры показывать раскрытую ладонь. Ограничение - 75 цифр")
+
+#Загрузка видео с камеры и детектирование рук
 scr = cv2.VideoCapture(0)
 handsDetector = mp.solutions.hands.Hands()
-count = 0
+
+#Определение изначальных переменных (предыдущие жесты и строка, выводящаяся на экран)
 prev_fist = False
 prev_gest = -2
 outp = ""
+
+
 while(scr.isOpened()):
     ret, frame = scr.read()
+    
     if cv2.waitKey(1) & 0xFF == ord('q') or not ret:
         break
+    
     flipped = np.fliplr(frame)
     flippedRGB = cv2.cvtColor(flipped, cv2.COLOR_BGR2RGB)
     results = handsDetector.process(flippedRGB)
-    if results.multi_hand_landmarks is not None:
+    
+    if results.multi_hand_landmarks is not None and len(outp)<76:
         numget = False
-        #cv2.drawContours(flippedRGB, [get_points(results.multi_hand_landmarks[0].landmark, flippedRGB.shape)], 0, (255, 0, 0), 2)
+        
         (x, y), r = cv2.minEnclosingCircle(get_points(results.multi_hand_landmarks[0].landmark, flippedRGB.shape))
         ws = palm_size(results.multi_hand_landmarks[0].landmark, flippedRGB.shape)
-        #if 2 * r / ws > 1.3:
-            #cv2.circle(flippedRGB,(int(x), int(y)), int(r), (q0, 0, 255), 2)          
+          
         if 2 * r / ws <= 1.3:
+            
             if not prev_fist:
+                
                 if prev_gest!=-1:
                     prev_gest = -1
                     outp+=str(0)
+                    
                 prev_fist = True
                 numget = True
+                
         else: 
             ii = 0
             while not numget and ii<9:
-                #cv2.drawContours(flippedRGB, [get_points(results.multi_hand_landmarks[0].landmark, flippedRGB.shape)], 0, (255, 0, 0), 2)
                 (x, y), r = cv2.minEnclosingCircle(get_points(results.multi_hand_landmarks[0].landmark, flippedRGB.shape, ii))
                 ws = palm_size(results.multi_hand_landmarks[0].landmark, flippedRGB.shape)
+                
                 if 2 * r / ws > 1.3:
                     prev_fist = False
                                 
                 else:
+                    
                     if not prev_fist:
                         numget = True
+                        
                         if prev_gest!= ii:
+                            
                             if ii<3:
                                 outp+=str(ii+1)
                                     
@@ -108,12 +124,14 @@ while(scr.isOpened()):
         outp1 = ""
         outp2 = ""
         outp3 = ""
+        
         for i in range(15):
             outp1+=outp[i]
         for i in range(15):
             outp2+=outp[i+15]
         for i in range(len(outp)-30):
             outp3+=outp[i+30]
+            
         cv2.putText(flippedRGB, outp1, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
         cv2.putText(flippedRGB, outp2, (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
         cv2.putText(flippedRGB, outp3, (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
@@ -136,7 +154,7 @@ while(scr.isOpened()):
         cv2.putText(flippedRGB, outp3, (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
         cv2.putText(flippedRGB, outp4, (10, 200), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
         
-    else:
+    elif len(outp)>60 and len(outp)<76:
         outp1 = ""
         outp2 = ""
         outp3 = ""
@@ -157,15 +175,37 @@ while(scr.isOpened()):
         cv2.putText(flippedRGB, outp3, (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
         cv2.putText(flippedRGB, outp4, (10, 200), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
         cv2.putText(flippedRGB, outp5, (10, 250), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
-    
-    
+
+    else:
+        outp1 = ""
+        outp2 = ""
+        outp3 = ""
+        outp4 = ""
+        outp5 = ""
+        for i in range(15):
+            outp1+=outp[i]
+        for i in range(15):
+            outp2+=outp[i+15]
+        for i in range(15):
+            outp3+=outp[i+30]
+        for i in range(15):
+            outp4+=outp[i+45]
+        for i in range(15):
+            outp5+=outp[i+60]
+        cv2.putText(flippedRGB, outp1, (10, 50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
+        cv2.putText(flippedRGB, outp2, (10, 100), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
+        cv2.putText(flippedRGB, outp3, (10, 150), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
+        cv2.putText(flippedRGB, outp4, (10, 200), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
+        cv2.putText(flippedRGB, outp5, (10, 250), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), thickness=2)
+        
     res_image = cv2.cvtColor(flippedRGB, cv2.COLOR_RGB2BGR)
     cv2.imshow("Hands", res_image)
 
+#копирование полученной строки в буфер обмена
 cv2.destroyAllWindows()
 r = Tk()
 r.withdraw()
 r.clipboard_clear()
 r.clipboard_append(outp)
-r.update() # now it stays on the clipboard after the window is closed
+r.update() 
 r.destroy()
